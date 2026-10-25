@@ -42,3 +42,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 @media(max-width:560px){.main{padding-inline:11px}.page-title h1{font-size:28px}.stats article{border-radius:12px;padding:13px}.stats strong{font-size:26px;margin-top:13px}.panel-head{padding:16px 13px 14px}.filters{padding:0 13px 13px}.table-foot{padding:13px}.auth-card{padding:27px 22px}.dialog{padding:17px;border-radius:14px}}
 
 .pdf-file{background:#fff0ee;color:#b74e43;letter-spacing:.04em}.top-right #pdfTop{white-space:nowrap}@media(max-width:560px){.top-right #pdfTop{display:none}}
+
+.iconbtn.delete-response{color:#b42318;border-color:#f2c7c4;background:#fff7f6}.iconbtn.delete-response:hover{background:#fee4e2;border-color:#e7a19b}
