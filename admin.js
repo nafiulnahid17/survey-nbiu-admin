@@ -35,22 +35,38 @@ function render(){const arr=filtered(),pages=Math.max(1,Math.ceil(arr.length/siz
 function csv(records,file){if(!records.length){notify("No records available to download.");return;}const rows=[["Response ID","Full Name","Contact","Department","Batch","Registration Status","Venue Preference","Suggested Venue","Submitted","Opinion"],...records.map(r=>[r.id,r.name,r.contact,r.department,r.batch,statusText[r.status]||r.status,venueText[r.venue]||r.venueRaw||r.venue,r.suggestedVenue,r.submitted,r.opinion])];const content="\uFEFF"+rows.map(row=>row.map(x=>'"'+String(x??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a"),u=URL.createObjectURL(new Blob([content],{type:"text/csv;charset=utf-8"}));a.href=u;a.download=file;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);notify(`Downloaded ${records.length} response(s) as CSV.`);}
 function pdf(records,file){
  if(!records.length){notify("No records available for PDF export.");return;}
- try {
-  if(!window.jspdf?.jsPDF){throw new Error("PDF library did not load. Check internet/CDN access, then refresh.");}
-  const {jsPDF}=window.jspdf;
+ try{
+  const jsPDF=window.jspdf&&window.jspdf.jsPDF;
+  if(!jsPDF)throw new Error("PDF library did not load. Check your internet connection and refresh.");
   const doc=new jsPDF({orientation:"landscape",unit:"pt",format:"a4"});
-  if(typeof doc.autoTable!=="function"){throw new Error("PDF table plugin did not load. Refresh the page; if it persists, check CDN access.");}
-  const pageWidth=doc.internal.pageSize.getWidth();
-  const logo=document.querySelector(".brand-logo");
-  try{if(logo&&logo.complete&&logo.naturalWidth){doc.addImage(logo,"JPEG",38,26,46,46,undefined,"FAST");}}catch(e){console.warn("Logo could not be embedded in PDF:",e);}
-  doc.setTextColor(12,31,60);doc.setFont("helvetica","bold");doc.setFontSize(18);doc.text("NORTH BENGAL INTERNATIONAL UNIVERSITY",96,43);
-  doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(100,112,130);doc.text("Convocation Survey - Response Report",96,61);
-  doc.setFontSize(9);doc.text("Generated: "+new Date().toLocaleString(),pageWidth-38,43,{align:"right"});
-  doc.setDrawColor(201,164,92);doc.setLineWidth(1.2);doc.line(38,82,pageWidth-38,82);
-  const body=records.map((r,i)=>[String(i+1),r.name||"-",r.contact||"-",r.department||"-",r.batch||"-",statusText[r.status]||r.status||"Not specified",venueText[r.venue]||r.venueRaw||r.venue||"Not specified",r.suggestedVenue||"-",formatDate(r.submitted),r.opinion||"-"]);
-  doc.autoTable({startY:96,head:[["No.","Full name","Contact","Department","Batch","Registration","Preferred venue","Suggested venue","Submitted","Opinion / suggestions"]],body,theme:"grid",margin:{left:38,right:38,bottom:42},styles:{font:"helvetica",fontSize:7,cellPadding:5,overflow:"linebreak",textColor:[35,53,78],lineColor:[224,230,238],lineWidth:.35},headStyles:{fillColor:[9,26,53],textColor:[255,255,255],fontStyle:"bold",fontSize:7.2},alternateRowStyles:{fillColor:[248,249,251]},columnStyles:{0:{cellWidth:28,halign:"center"},1:{cellWidth:92},2:{cellWidth:94},3:{cellWidth:63},4:{cellWidth:48},5:{cellWidth:67},6:{cellWidth:95},7:{cellWidth:80},8:{cellWidth:62},9:{cellWidth:"auto"}},didDrawPage:()=>{const n=doc.internal.getNumberOfPages();doc.setFontSize(8);doc.setTextColor(120,130,145);doc.text("NBIU Convocation Survey - Confidential student information",38,doc.internal.pageSize.getHeight()-20);doc.text("Page "+n,pageWidth-38,doc.internal.pageSize.getHeight()-20,{align:"right"});}});
-  doc.save(file);notify("PDF report downloaded ("+records.length+" responses).");
- } catch(err) { console.error("PDF export failed:",err);notify(err.message||"PDF export failed. Open the browser console for details."); }
+  const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),left=32,right=32,top=102,bottom=42,tw=pw-left-right;
+  const heads=["No.","Full name","Contact","Department","Batch","Registration","Preferred venue","Suggested venue","Submitted","Opinion / suggestions"];
+  const widths=[25,82,82,58,43,65,82,72,56,tw-25-82-82-58-43-65-82-72-56];
+  const rows=records.map((r,i)=>[String(i+1),r.name||"-",r.contact||"-",r.department||"-",r.batch||"-",statusText[r.status]||r.status||"Not specified",venueText[r.venue]||r.venueRaw||r.venue||"Not specified",r.suggestedVenue||"-",formatDate(r.submitted),r.opinion||"-"]);
+  function drawHeader(){
+   const logo=document.querySelector(".brand-logo");
+   try{if(logo&&logo.complete&&logo.naturalWidth)doc.addImage(logo,"JPEG",left,24,43,43);}catch(e){}
+   doc.setTextColor(12,31,60);doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("NORTH BENGAL INTERNATIONAL UNIVERSITY",left+54,40);
+   doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(100,112,130);doc.text("Convocation Survey - Response Report",left+54,58);
+   doc.setFontSize(8);doc.text("Generated: "+new Date().toLocaleString(),pw-right,40,{align:"right"});
+   doc.setDrawColor(201,164,92);doc.setLineWidth(1.2);doc.line(left,78,pw-right,78);
+   let x=left;doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setFillColor(9,26,53);doc.setDrawColor(210,218,228);doc.setTextColor(255,255,255);
+   heads.forEach((h,i)=>{doc.rect(x,top,widths[i],24,"FD");doc.text(doc.splitTextToSize(h,widths[i]-6),x+3,top+9);x+=widths[i];});
+   return top+24;
+  }
+  function drawFooter(){doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(120,130,145);doc.text("NBIU Convocation Survey - Confidential student information",left,ph-18);doc.text("Page "+doc.internal.getNumberOfPages(),pw-right,ph-18,{align:"right"});}
+  let y=drawHeader();
+  rows.forEach((row,ri)=>{
+   doc.setFont("helvetica","normal");doc.setFontSize(6.2);
+   const lines=row.map((v,i)=>doc.splitTextToSize(String(v==null?"-":v),Math.max(12,widths[i]-7)));
+   const h=Math.max(22,...lines.map(a=>a.length*7.2+8));
+   if(y+h>ph-bottom){drawFooter();doc.addPage();y=drawHeader();}
+   let x=left;
+   row.forEach((v,i)=>{doc.setDrawColor(224,230,238);doc.setLineWidth(.35);if(ri%2){doc.setFillColor(248,249,251);doc.rect(x,y,widths[i],h,"FD");}else doc.rect(x,y,widths[i],h,"S");doc.setTextColor(35,53,78);doc.text(lines[i],x+3,y+10);x+=widths[i];});
+   y+=h;
+  });
+  drawFooter();doc.save(file);notify("PDF report downloaded ("+records.length+" responses).");
+ }catch(err){console.error("PDF export failed:",err);notify(err.message||"PDF export failed.");}
 }
 async function deleteResponse(id){
  const record=data.find(r=>String(r.id)===String(id));
