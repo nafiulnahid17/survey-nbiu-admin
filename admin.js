@@ -1,7 +1,7 @@
 // NBIU Convocation Survey Admin — live data only, authenticated access.
 // Configure SUPABASE_URL and SUPABASE_ANON_KEY below. Never use a service_role key in browser code.
-const SUPABASE_URL = "";
-const SUPABASE_ANON_KEY = "";
+const SUPABASE_URL = "https://rkjmflothfyeiwnnvlmo.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJram1mbG90aGZ5ZWl3bm52bG1vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5NDE3MTIsImV4cCI6MjEwODUxNzcxMn0.8BIcgMukk04ByBzS96SsGg9BBHHJpmGOlvJ6iEY75pI";
 const SUPABASE_TABLE = "convocation_survey";
 const $ = id => document.getElementById(id);
 let supabaseClient = null, data = [], page = 1, selected = new Set(), detail = null, session = null;
