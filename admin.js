@@ -7,7 +7,7 @@ const $ = id => document.getElementById(id);
 let supabaseClient = null, data = [], page = 1, selected = new Set(), detail = null, session = null;
 const size = 8;
 const statusText = {registered:"Registered",will:"Will register",undecided:"Undecided",no:"Not registering"};
-const venueText = {campus:"Own campus",outside:"Outside venue",either:"Either acceptable","NBIU Official Campus":"Own campus","Zilla Convocation Hall":"Outside venue","Zilla Stadium/Convocation Hall":"Outside venue","Others":"Outside venue"};
+const venueText = {campus:"Own campus",outside:"Outside venue",either:"Either acceptable","NBIU Official Campus":"Own campus","Zilla Convocation Hall":"Outside venue","Zilla Stadium / Convocation Hall":"Outside venue","Zilla Stadium/Convocation Hall":"Outside venue","Others":"Outside venue"};
 const esc = s => String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function first(r, keys, fallback="") { for (const k of keys) if (r[k] !== undefined && r[k] !== null && r[k] !== "") return r[k]; return fallback; }
 function normalize(row, i) {
@@ -16,8 +16,9 @@ function normalize(row, i) {
  const venue = /campus|university/i.test(venueTextRaw) ? "campus" : /either|both|no preference/i.test(venueTextRaw) ? "either" : /hall|stadium|other|outside/i.test(venueTextRaw) ? "outside" : venueTextRaw;
  const rawStatus = String(first(row,["registration_status","registration_status_for_convocation","registration","status"],"Not specified")).toLowerCase();
  const status = /already|registered|yes/.test(rawStatus) ? "registered" : /will|plan|intend/.test(rawStatus) ? "will" : /not|no/.test(rawStatus) ? "no" : /undecided|not sure|maybe/.test(rawStatus) ? "undecided" : rawStatus;
- const contact = [first(row,["phone","phone_number","mobile","contact_number"]), first(row,["email","email_address"])].filter(Boolean).join(" · ");
- return {id:String(first(row,["id","response_id"],i+1)),name:first(row,["full_name","name","student_name"],"Unnamed submission"),contact:contact || first(row,["contact","phone_or_email"]),department:first(row,["department","program","faculty"],"—"),batch:first(row,["batch","session","academic_batch"],"—"),status,venue,venueRaw:venueTextRaw,suggestedVenue:first(row,["suggested_venue","other_venue","venue_suggestion"]),submitted:first(row,["created_at","submitted_at","submission_date","timestamp"]),opinion:first(row,["opinion","suggestions","comments","message"]),raw:row};
+ const directContact = first(row,["contact_value","contact","phone_or_email"]);
+ const contact = directContact || [first(row,["phone","phone_number","mobile","contact_number"]), first(row,["email","email_address"])].filter(Boolean).join(" · ");
+ return {id:String(first(row,["id","response_id"],i+1)),name:first(row,["full_name","name","student_name"],"Unnamed submission"),contact:contact || first(row,["contact","phone_or_email"]),department:first(row,["department","program","faculty"],"—"),batch:first(row,["batch","session","academic_batch"],"—"),status,venue,venueRaw:venueTextRaw,suggestedVenue:first(row,["suggested_venue","other_venue","venue_suggestion"]),submitted:first(row,["created_at","submitted_at","submission_date","timestamp"]),opinion:first(row,["opinion_suggestions","opinion","suggestions","comments","message"]),raw:row};
 }
 function notify(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(notify.timer);notify.timer=setTimeout(()=>t.classList.remove("show"),3500);}
 function showAuth(message="Sign in with an authorized administrator account.") {
