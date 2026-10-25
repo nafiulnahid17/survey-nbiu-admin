@@ -39,20 +39,24 @@ function pdf(records,file){
   const jsPDF=window.jspdf&&window.jspdf.jsPDF;
   if(!jsPDF)throw new Error("PDF library did not load. Check your internet connection and refresh.");
   const doc=new jsPDF({orientation:"landscape",unit:"pt",format:"a4"});
-  const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),left=32,right=32,top=102,bottom=42,tw=pw-left-right;
-  const heads=["No.","Full name","Contact","Department","Batch","Registration","Preferred venue","Suggested venue","Submitted","Opinion / suggestions"];
+  const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),left=32,right=32,top=126,bottom=42,tw=pw-left-right;
+  const heads=["No.","Full Name","Contact Information","Department","Batch","Registration Status","Preferred Venue","Suggested Location","Submission Date","Opinions & Suggestions"];
   const widths=[25,82,82,58,43,65,82,72,56,tw-25-82-82-58-43-65-82-72-56];
   const rows=records.map((r,i)=>[String(i+1),r.name||"-",r.contact||"-",r.department||"-",r.batch||"-",statusText[r.status]||r.status||"Not specified",venueText[r.venue]||r.venueRaw||r.venue||"Not specified",r.suggestedVenue||"-",formatDate(r.submitted),r.opinion||"-"]);
   function drawHeader(){
    const logo=document.querySelector(".brand-logo");
-   try{if(logo&&logo.complete&&logo.naturalWidth)doc.addImage(logo,"JPEG",left,24,43,43);}catch(e){}
-   doc.setTextColor(12,31,60);doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("NORTH BENGAL INTERNATIONAL UNIVERSITY",left+54,40);
-   doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(100,112,130);doc.text("Convocation Survey - Response Report",left+54,58);
-   doc.setFontSize(8);doc.text("Generated: "+new Date().toLocaleString(),pw-right,40,{align:"right"});
-   doc.setDrawColor(201,164,92);doc.setLineWidth(1.2);doc.line(left,78,pw-right,78);
+   try{if(logo&&logo.complete&&logo.naturalWidth)doc.addImage(logo,"JPEG",left,22,43,43);}catch(e){}
+   doc.setTextColor(12,31,60);doc.setFont("helvetica","bold");doc.setFontSize(16);doc.text("NORTH BENGAL INTERNATIONAL UNIVERSITY",left+54,38);
+   doc.setFont("helvetica","normal");doc.setFontSize(10);doc.setTextColor(100,112,130);doc.text("Convocation Survey - Response Report",left+54,56);
+   doc.setFontSize(8);doc.text("Generated: "+new Date().toLocaleString(),pw-right,38,{align:"right"});
+   doc.setFont("helvetica","bold");doc.setFontSize(8);doc.setTextColor(35,53,78);doc.text("SURVEY TOPICS",left,83);
+   doc.setFont("helvetica","normal");doc.setFontSize(8);
+   doc.text("Student name • Department • Batch • Contact information • Registration status • Preferred venue • Suggested location • Opinions & suggestions",left,97);
+   doc.setDrawColor(201,164,92);doc.setLineWidth(1.2);doc.line(left,108,pw-right,108);
    let x=left;doc.setFont("helvetica","bold");doc.setFontSize(6.5);doc.setFillColor(9,26,53);doc.setDrawColor(210,218,228);doc.setTextColor(255,255,255);
-   heads.forEach((h,i)=>{doc.rect(x,top,widths[i],24,"FD");doc.text(doc.splitTextToSize(h,widths[i]-6),x+3,top+9);x+=widths[i];});
-   return top+24;
+   const headerH=30;
+   heads.forEach((h,i)=>{doc.rect(x,top,widths[i],headerH,"FD");const lines=doc.splitTextToSize(h,widths[i]-6);doc.text(lines,x+3,top+9);x+=widths[i];});
+   return top+headerH;
   }
   function drawFooter(){doc.setFont("helvetica","normal");doc.setFontSize(7.5);doc.setTextColor(120,130,145);doc.text("NBIU Convocation Survey - Confidential student information",left,ph-18);doc.text("Page "+doc.internal.getNumberOfPages(),pw-right,ph-18,{align:"right"});}
   let y=drawHeader();
